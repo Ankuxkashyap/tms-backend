@@ -12,10 +12,9 @@ const notificationSchema = new Schema(
     message: {
       type: String,
     },
-    task: {
+    taskId: {
       type: Schema.Types.ObjectId,
-      ref: "Task", 
-      default: null,
+      ref: "Task",
     },
     read: {
       type: Boolean,

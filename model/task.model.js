@@ -10,6 +10,7 @@ const taskSchema = new Schema(
     },
     description: {
       type: String,
+      required: true,
     },
     dueDate: {
       type: Date,
@@ -34,12 +35,6 @@ const taskSchema = new Schema(
       ref: "User",
       default: null,
     },
-    notifications: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Notification",
-      },
-    ],
   },
   {
     timestamps: true, 

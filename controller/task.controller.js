@@ -1,10 +1,14 @@
+import mongoose from "mongoose";
 import Task from "../model/task.model.js";
+import {io} from "../index.js"
+import Notification from "../model/notification.model.js";
 
 export const CreateTask = async (req, res) => {
   try {
-    const { title, description, assignedTo, dueDate } = req.body;
+    const { title, description, assignedTo,priority, status, dueDate } = req.body;
+    // console.log(title, description, assignedTo,priority, status, dueDate);
 
-    if (!title) {
+    if (!title || !description || !status) {
       return res.status(400).json({ message: "Title is required", success: false });
     }
     if (!assignedTo) {
@@ -19,19 +23,25 @@ export const CreateTask = async (req, res) => {
       title,
       description,
       assignedTo,
+      status,
+      priority,
       createdBy: req.user._id,
       dueDate,
-      // notifications: [
-      //   {
-      //     message: `Task "${title}" has been created and assigned to you.`,
-      //     user: assignedTo,
-      //   }
-      // ],
     });
 
+    const newNotification = await Notification.create({
+      user: assignedTo,
+      message: `You have been assigned a new task: ${title}`,
+      taskId: newTask._id,
+    })
+
+    io.to(assignedTo.toString()).emit("notification", newNotification);
+
+    console.log(newNotification);
     res
       .status(201)
-      .json({ message: "Task created successfully", task: newTask, success: true });
+      .json({ message: "Task created successfully", task: newTask,notification:newNotification,success: true });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error", success: false });
@@ -112,6 +122,7 @@ export const getOverdueTasks = async (req, res) => {
   try{
     const currentDate = new Date();
     const userId = req.user._id;
+    // console.log(userId);
     const tasks = await Task.find({ dueDate: { $lt: currentDate }, status: { $ne: "COMPLETED" },assignedTo:userId }).sort({ dueDate: -1 })
       .populate("createdBy", "name email")
       .populate("assignedTo", "name email");
@@ -127,6 +138,38 @@ export const getOverdueTasks = async (req, res) => {
     res.status(500).json({ message: "Internal server error", success: false });
   }
 }
+
+
+export const getTasksById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ 
+        message: "Invalid task ID", 
+        success: false 
+      });
+    }
+
+    const task = await Task.findById(id);
+    if (!task) {
+      return res.status(404).json({ 
+        message: "Task not found", 
+        success: false 
+      });
+    }
+
+    res.status(200).json({ task, success: true });
+  } catch (err) {
+    console.error("Error fetching task by ID:", err);
+    res.status(500).json({ 
+      message: "Internal server error", 
+      success: false 
+    });
+  }
+};
+
+
 export const getTasksByQuery = async (req, res) => {
   try {
     const {query} = req.body 
@@ -156,3 +199,57 @@ export const getTasksByQuery = async (req, res) => {
   }
 };
 
+export const DeleteTask = async(req,res) =>{
+  const {id} = req.params
+  const user = req.user;
+  // console.log(user)
+  try{
+    const task = await Task.findByIdAndDelete(id);
+
+    if(!task){
+      return res.status(404).json({ message: "Task not found", success: false });
+    }
+
+    if(task.createdBy.toString() !== user._id.toString()){
+      return res.status(403).json({ message: "You are not authorized to delete this task", success: false });
+    }
+
+    res.status(200).json({ message: "Task deleted successfully", success: true });
+
+  }catch(error){
+    res.status(500).json({ message: "Internal server error", success: false });
+    console.log(error);
+  }
+}
+
+export const EditTask = async(req,res) =>{
+  try{
+    const {id} = req.params;
+    const user = req.user;
+    const {title,description,assignedTo,dueDate,priority,status} = req.body;
+    const task = await Task.findById(id);
+
+    if(!task){
+      return res.status(404).json({ message: "Task not found", success: false });
+    }
+
+    if(task.createdBy.toString() !== user._id.toString()){
+      return res.status(403).json({ message: "You are not authorized to update this task", success: false });
+    }
+
+    task.title = title;
+    task.description = description;
+    task.assignedTo = assignedTo;
+    task.dueDate = dueDate;
+    task.priority = priority;
+    task.status = status;
+
+    await task.save();
+
+    res.status(200).json({ message: "Task updated successfully", success: true });
+
+  }catch(error){
+    res.status(500).json({ message: "Internal server error", success: false });
+    console.log(error);
+  }
+}
