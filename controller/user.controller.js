@@ -28,13 +28,15 @@ export const register = async (req, res) => {
       password: hashedPassword,
     });
 
-    const token = generateToken(user._id); 
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '30d',
+    });
 
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    })
 
     return res.status(201).json({
       _id: user._id,
@@ -44,6 +46,7 @@ export const register = async (req, res) => {
       success: true,
       message: "Registration successful"
     });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Server error', error: error.message });
@@ -69,7 +72,9 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const token = generateToken(user._id); 
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '30d',
+    });
 
     res.cookie('token', token, {
       httpOnly: true,
