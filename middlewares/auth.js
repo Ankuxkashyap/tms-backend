@@ -10,6 +10,7 @@ export const authMiddleware = async (req,res,next)=>{
         console.log(token);
 
         let decoded;
+
         try {
             decoded = jwt.verify(token, process.env.JWT_SECRET);
         } catch(err) {
@@ -20,7 +21,6 @@ export const authMiddleware = async (req,res,next)=>{
         if(!req.user) {
             return res.status(401).json({ message: "User not found", success: false });
         }
-
         next();
     } catch (error) {
         console.error(error);

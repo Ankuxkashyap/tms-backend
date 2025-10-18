@@ -6,7 +6,6 @@ import { response } from "express";
 export const register = async(req,res)=>{
     try {
         const {name,email,password} = req.body;
-
         const user = await User.findOne({email});
         if(user){
             return res.status(400).json({message:"User already exists",success:false});
@@ -36,6 +35,7 @@ export const login = async(req,res)=>{
         const {email,password} = req.body;
 
         const user = await User.findOne({email});
+
         if(!user){
             return res.status(400).json({message:"User not found",success:false});
         }
@@ -49,11 +49,9 @@ export const login = async(req,res)=>{
         const token = jwt.sign({id:user._id},process.env.JWT_SECRET);
         res.cookie("token",token,
             {
-                httpOnly:true,
                 maxAge: 26*60*60*1000,
                 httpOnly: true,
-                sameSite: "none",
-
+                sameSite: "None",
             });
         const responseUser = {
             name:user.name,
