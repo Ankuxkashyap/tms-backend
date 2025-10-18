@@ -26,7 +26,7 @@ const io = new Server(server, {cors:{
 }}); 
 
  app.use(cors({
-    origin:"https://taskify-theta-teal.vercel.app/",
+    origin:"https://taskify-theta-teal.vercel.app",
     methods:["GET","POST","DELETE","PUT"],
     credentials:true,
 }))
