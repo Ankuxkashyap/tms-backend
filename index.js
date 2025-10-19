@@ -19,9 +19,12 @@ conn();
 app.use(express.json());
 app.use(cookieParser());
 
+// const url = "https://taskify-theta-teal.vercel.app";
+
+
 const io = new Server(server, {
   cors: {
-    origin: "https://taskify-theta-teal.vercel.app",
+    origin: url || "http://localhost:3000",
     methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   },
@@ -29,7 +32,7 @@ const io = new Server(server, {
 
 app.use(
   cors({
-    origin: "https://taskify-theta-teal.vercel.app",
+    origin: url || "http://localhost:3000",
     credentials: true,
     methods: ["GET", "POST", "DELETE", "PUT"],
   })
