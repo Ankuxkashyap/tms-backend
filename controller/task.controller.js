@@ -5,19 +5,11 @@ import Notification from "../model/notification.model.js";
 
 export const CreateTask = async (req, res) => {
   try {
-    const { title, description, assignedTo,priority, status, dueDate } = req.body;
-    // console.log(title, description, assignedTo,priority, status, dueDate);
+    const { title, description, assignedTo, priority, status, dueDate } = req.body;
 
-    if (!title || !description || !status) {
-      return res.status(400).json({ message: "Title is required", success: false });
+    if (!title || !description || !status || !assignedTo || !dueDate) {
+      return res.status(400).json({ message: "All fields are required", success: false });
     }
-    if (!assignedTo) {
-      return res.status(400).json({ message: "AssignedTo is required", success: false });
-    }
-    if (!dueDate) {
-      return res.status(400).json({ message: "DueDate is required", success: false });
-    }
-
 
     const newTask = await Task.create({
       title,
@@ -33,15 +25,18 @@ export const CreateTask = async (req, res) => {
       user: assignedTo,
       message: `You have been assigned a new task: ${title}`,
       taskId: newTask._id,
-    })
+    });
 
     io.to(assignedTo.toString()).emit("notification", newNotification);
 
-    console.log(newNotification);
-    res
-      .status(201)
-      .json({ message: "Task created successfully", task: newTask,notification:newNotification,success: true });
+    console.log("Notification sent:", newNotification);
 
+    res.status(201).json({
+      message: "Task created successfully",
+      task: newTask,
+      notification: newNotification,
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error", success: false });
