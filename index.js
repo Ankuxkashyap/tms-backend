@@ -40,15 +40,15 @@ app.use(
 );
 
 io.on("connection", (socket) => {
-  console.log(`Connected to socket.io: ${socket.id}`);
+//   console.log(`Connected to socket.io: ${socket.id}`);
 
   socket.on("join", (userId) => {
-    console.log("User joining room:", userId);
+    // console.log("User joining room:", userId);
     socket.join(userId.toString());
   });
 
   socket.on("leave", (userId) => {
-    console.log("User leaving room:", userId);
+    // console.log("User leaving room:", userId);
     socket.leave(userId.toString());
   });
 });
