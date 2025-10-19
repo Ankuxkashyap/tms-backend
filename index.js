@@ -34,8 +34,10 @@ const io = new Server(server, {cors:{
 io.on("connection", (socket,) => {
     console.log(`Connected to socket.io: ${socket.id}`);
 
-    socket.on("join", (userId) => {
-        
+    socket.on("join", (userId) => { 
+
+    console.log("join",userId); 
+      
     socket.join(userId); 
          console.log("join",userId);
     });
